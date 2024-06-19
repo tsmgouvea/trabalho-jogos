@@ -13,6 +13,14 @@ public class WallPassPowerUp : MonoBehaviour
             {
                 snake.EnableWallPass(wallPassDuration);
             }
+
+            // Encontra o PowerUpSpawner e notifica que o power-up foi consumido
+            PowerUpSpawner spawner = FindObjectOfType<PowerUpSpawner>();
+            if (spawner != null)
+            {
+                spawner.OnPowerUpConsumed();
+            }
+
             gameObject.SetActive(false); // Desativa o power-up em vez de destruí-lo
         }
     }

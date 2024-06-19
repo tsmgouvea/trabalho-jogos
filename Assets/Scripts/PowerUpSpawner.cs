@@ -16,20 +16,15 @@ public class PowerUpSpawner : MonoBehaviour
     private void Awake()
     {
         snake = FindObjectOfType<Snake>();
+        if (snake == null)
+        {
+            Debug.LogError("Snake script not found in the scene. Make sure the Snake script is attached to a GameObject and the object is tagged correctly.");
+        }
     }
 
     private void Start()
     {
         StartCoroutine(SpawnPowerUpAfterInterval());
-    }
-
-    private IEnumerator SpawnPowerUpAfterInterval()
-    {
-        while (true)
-        {
-            yield return new WaitForSeconds(spawnInterval);
-            SpawnPowerUp();
-        }
     }
 
     private void SpawnPowerUp()
@@ -45,30 +40,43 @@ public class PowerUpSpawner : MonoBehaviour
         }
     }
 
+    private IEnumerator DisablePowerUpAfterLifetime(GameObject powerUp)
+    {
+        // Espera pelo tempo de vida do power-up
+        yield return new WaitForSeconds(spawnInterval);
+        if (powerUp != null && powerUp.activeSelf)
+        {
+            powerUp.SetActive(false);
+        }
+    }
+
     private Vector2 GetRandomPosition()
     {
         Bounds bounds = gridArea.bounds;
 
-        // Pick a random position inside the bounds
-        // Round the values to ensure it aligns with the grid
+        // Escolhe uma posição aleatória dentro dos limites
+        // Arredonda os valores para garantir que eles se alinhem à grade
         int x = Mathf.RoundToInt(Random.Range(bounds.min.x, bounds.max.x));
         int y = Mathf.RoundToInt(Random.Range(bounds.min.y, bounds.max.y));
 
+        // Garante que a posição não está ocupada pela cobra
         while (snake.Occupies(x, y))
         {
-            x++;
-
-            if (x > bounds.max.x)
-            {
-                x = Mathf.RoundToInt(bounds.min.x);
-                y++;
-
-                if (y > bounds.max.y) {
-                    y = Mathf.RoundToInt(bounds.min.y);
-                }
-            }
+            x = Mathf.RoundToInt(Random.Range(bounds.min.x, bounds.max.x));
+            y = Mathf.RoundToInt(Random.Range(bounds.min.y, bounds.max.y));
         }
-        
+
         return new Vector2(x, y);
+    }
+
+    public void OnPowerUpConsumed()
+    {
+        StartCoroutine(SpawnPowerUpAfterInterval());
+    }
+
+    private IEnumerator SpawnPowerUpAfterInterval()
+    {
+        yield return new WaitForSeconds(spawnInterval);
+        SpawnPowerUp();
     }
 }
