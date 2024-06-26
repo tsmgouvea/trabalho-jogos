@@ -4,12 +4,12 @@ using System.Collections;
 [RequireComponent(typeof(BoxCollider2D))]
 public class PowerUpSpawner : MonoBehaviour
 {
-    public GameObject powerUpPrefab;  // O prefab do power-up
+    public GameObject powerUpPrefab;  // O prefab do power-up.
     public float spawnInterval = 10f; // Intervalo de tempo entre os spawns
 
     public Collider2D gridArea;
 
-    private Snake snake;
+    private Snake snake; // Declara a snake enste arquivo.
 
     private GameObject currentPowerUp;
 
@@ -18,7 +18,7 @@ public class PowerUpSpawner : MonoBehaviour
         snake = FindObjectOfType<Snake>();
         if (snake == null)
         {
-            Debug.LogError("Snake script not found in the scene. Make sure the Snake script is attached to a GameObject and the object is tagged correctly.");
+            Debug.LogError("Script da Snake não encontrado na cena.");
         }
     }
 
@@ -26,7 +26,8 @@ public class PowerUpSpawner : MonoBehaviour
     {
         StartCoroutine(SpawnPowerUpAfterInterval());
     }
-
+    
+    // Spawna um novo powerup em uma posição aleatória
     private void SpawnPowerUp()
     {
         if (currentPowerUp != null)

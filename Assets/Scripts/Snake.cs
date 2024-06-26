@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Linq;
 
 [RequireComponent(typeof(BoxCollider2D))]
 public class Snake : MonoBehaviour
@@ -12,13 +13,15 @@ public class Snake : MonoBehaviour
     public float speedMultiplier = 1f;
     public int initialSize = 4;
     public bool moveThroughWalls = false;
-
     private List<Transform> segments = new List<Transform>();
     private Vector2Int input;
     private float nextUpdate;
+    public GameOver gameOver;
+    public Collider2D snakeCollider;
 
     private void Start()
     {
+        snakeCollider = GetComponent<Collider2D>();
         ResetState();
     }
 
@@ -56,9 +59,7 @@ public class Snake : MonoBehaviour
             direction = input;
         }
 
-        // Set each segment's position to be the same as the one it follows. We
-        // must do this in reverse order so the position is set to the previous
-        // position, otherwise they will all be stacked on top of each other.
+        // Atualiza a posição da Snake (Loop em ordem reversa visto que a cabeça é o índice 0)
         for (int i = segments.Count - 1; i > 0; i--) {
             segments[i].position = segments[i - 1].position;
         }
@@ -80,23 +81,47 @@ public class Snake : MonoBehaviour
         segments.Add(segment);
     }
 
+    // Desabilita o colisor da Snake 
+    public void DisableCollider()
+    {
+        snakeCollider.enabled = false;
+        Debug.Log("Colisor da Snake desabilitado");
+    }
+
+    // Habilita o colisor da Snake
+    public void EnableCollider()
+    {
+        snakeCollider.enabled = true;
+        Debug.Log("Colisor da Snake habilitado");
+    }
+
     public void ResetState()
     {
+        // Inicia a Snake na posição (0,0)
         direction = Vector2Int.right;
         transform.position = Vector3.zero;
 
-        // Start at 1 to skip destroying the head
-        for (int i = 1; i < segments.Count; i++) {
-            Destroy(segments[i].gameObject);
+        // Destrói os segmentos da Snake
+        foreach (Transform segment in segments.Skip(1))
+        {
+            Destroy(segment.gameObject);
+        }
+        
+        // Reconstrói a Snake
+        segments.Clear();
+        segments.Add(this.transform);
+        
+        // Aumenta o tamanho inicial da Snake
+        for (int i = 1; i < initialSize; i++) 
+        {
+            Grow();
         }
 
-        // Clear the list but add back this as the head
-        segments.Clear();
-        segments.Add(transform);
-
-        // -1 since the head is already in the list
-        for (int i = 0; i < initialSize - 1; i++) {
-            Grow();
+        // Habilita o colisor da Snake
+        snakeCollider.enabled = true;
+        if (snakeCollider != null)
+        {
+            Debug.Log("Colisor da Snake habilitado");
         }
     }
 
@@ -113,6 +138,7 @@ public class Snake : MonoBehaviour
         return false;
     }
 
+    // Detecta colisões e toma providências
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.CompareTag("Food"))
@@ -121,14 +147,16 @@ public class Snake : MonoBehaviour
         }
         else if (other.gameObject.CompareTag("Obstacle"))
         {
-            ResetState();
+            Debug.Log("Colisão detectada");
+            gameOver.EndGame();
         }
         else if (other.gameObject.CompareTag("Wall"))
         {
             if (moveThroughWalls) {
                 Traverse(other.transform);
             } else {
-                ResetState();
+                Debug.Log("Colisão detectada");
+                gameOver.EndGame();
             }
         }
     }
