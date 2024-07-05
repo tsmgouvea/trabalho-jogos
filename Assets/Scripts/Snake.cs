@@ -31,6 +31,7 @@ public class Snake : MonoBehaviour
     private Vector2Int input;
     private float nextUpdate;
     public GameOver gameOver;
+    public DebuffController debuffController;
     public Collider2D snakeCollider;
     private SpriteRenderer spriteRenderer;
     public AudioSource eatSound;
@@ -233,6 +234,9 @@ public class Snake : MonoBehaviour
         {
             Grow();
             eatSound.Play();
+            debuffController.SwitchCamerasToDefault();
+            debuffController.timeSinceEat = 0f;
+            debuffController.cameraDebuffDuration = 0f;
         }
         else if (other.gameObject.CompareTag("Obstacle"))
         {

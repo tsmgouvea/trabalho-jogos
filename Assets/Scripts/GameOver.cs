@@ -42,7 +42,8 @@ public class GameOver : MonoBehaviour
     {
         Debug.Log("Restarting the game");
         Time.timeScale = 1f; // Despausar o jogo 
-        GameOverCanvas.SetActive(false); // Desativar a tela de Game Over 
+        GameOverCanvas.SetActive(false); // Desativar a tela de Game Over
+
         StartCoroutine(RestartCoroutine());
     }
 
