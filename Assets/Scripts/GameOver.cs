@@ -1,11 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameOver : MonoBehaviour
 {
     public GameObject GameOverCanvas;
     public Snake snakeController; // Importa a Snake
+    public ScoreManager scoreManager;
+    public Text scoreTextGameOver;
     private bool isGameOver = false;
 
     // Garante que a tela de Game Over comece inativa
@@ -24,6 +27,9 @@ public class GameOver : MonoBehaviour
             // Desabilita o colisor da Snake para evitar colisões fantasmas
             snakeController.snakeCollider.enabled = false;
             Debug.Log("Snake Collider disabled");
+
+            scoreTextGameOver.text = "Score: " + scoreManager.GetScore().ToString();
+            scoreManager.ResetScore();
 
             GameOverCanvas.SetActive(true); // Activate the Game Over Canvas
             Time.timeScale = 0f; // Pause the game

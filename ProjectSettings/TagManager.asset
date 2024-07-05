@@ -8,6 +8,7 @@ TagManager:
   - Obstacle
   - Wall
   - Snake
+  - PowerUp
   layers:
   - Default
   - TransparentFX
@@ -44,4 +45,10 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Fundo
+    uniqueID: 2248397165
+    locked: 0
+  - name: Frente
+    uniqueID: 4194678595
     locked: 0
