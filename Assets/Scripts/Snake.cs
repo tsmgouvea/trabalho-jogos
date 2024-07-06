@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -13,17 +13,101 @@ public class Snake : MonoBehaviour
     public float speedMultiplier = 1f;
     public int initialSize = 4;
     public bool moveThroughWalls = false;
+    public Sprite headUp;
+    public Sprite headDown;
+    public Sprite headLeft;
+    public Sprite headRight;
+    public Sprite bodyHorizontal;
+    public Sprite bodyVertical;
+    public Sprite curveTopRight;
+    public Sprite curveTopLeft;
+    public Sprite curveBottomRight;
+    public Sprite curveBottomLeft;
+    public Sprite tailUp;
+    public Sprite tailDown;
+    public Sprite tailLeft;
+    public Sprite tailRight;
     private List<Transform> segments = new List<Transform>();
     private Vector2Int input;
     private float nextUpdate;
     public GameOver gameOver;
+    public DebuffController debuffController;
     public Collider2D snakeCollider;
+    private SpriteRenderer spriteRenderer;
+    public AudioSource eatSound;
+    public AudioSource powerUpSound;
+    public AudioSource wallPassSound;
+    public ScoreManager scoreManager;
+
 
     private void Start()
     {
         snakeCollider = GetComponent<Collider2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
         ResetState();
     }
+
+    private void UpdateSprites()
+    {
+        // Atualizar sprite da cabeça
+        if (direction == Vector2Int.up) {
+            spriteRenderer.sprite = headUp;
+        } else if (direction == Vector2Int.down) {
+            spriteRenderer.sprite = headDown;
+        } else if (direction == Vector2Int.left) {
+            spriteRenderer.sprite = headLeft;
+        } else if (direction == Vector2Int.right) {
+            spriteRenderer.sprite = headRight;
+        }
+
+        // Atualizar sprites do corpo e cauda
+        for (int i = 1; i < segments.Count; i++) {
+            SpriteRenderer segmentRenderer = segments[i].GetComponent<SpriteRenderer>();
+            Vector2Int prevSegmentDirection = Vector2Int.RoundToInt((Vector2)segments[i - 1].position - (Vector2)segments[i].position);
+            Vector2Int nextSegmentDirection = Vector2Int.zero;
+
+            if (i < segments.Count - 1) {
+                nextSegmentDirection = Vector2Int.RoundToInt((Vector2)segments[i].position - (Vector2)segments[i + 1].position);
+            }
+
+            if (i == segments.Count - 1) {
+                // Atualizar sprite da cauda
+                if (prevSegmentDirection == Vector2Int.up) {
+                    segmentRenderer.sprite = tailDown;
+                } else if (prevSegmentDirection == Vector2Int.down) {
+                    segmentRenderer.sprite = tailUp;
+                } else if (prevSegmentDirection == Vector2Int.left) {
+                    segmentRenderer.sprite = tailRight;
+                } else if (prevSegmentDirection == Vector2Int.right) {
+                    segmentRenderer.sprite = tailLeft;
+                }
+            } else {
+                // Atualizar sprite do corpo
+                if (prevSegmentDirection.x != 0 && nextSegmentDirection.x != 0) {
+                    segmentRenderer.sprite = bodyHorizontal;
+                } else if (prevSegmentDirection.y != 0 && nextSegmentDirection.y != 0) {
+                    segmentRenderer.sprite = bodyVertical;
+                } else {
+                    // Identificar curvas
+                    if (prevSegmentDirection == Vector2Int.up && nextSegmentDirection == Vector2Int.left ||
+                        prevSegmentDirection == Vector2Int.right && nextSegmentDirection == Vector2Int.down) {
+                        segmentRenderer.sprite = curveBottomLeft;
+                    } else if (prevSegmentDirection == Vector2Int.up && nextSegmentDirection == Vector2Int.right ||
+                            prevSegmentDirection == Vector2Int.left && nextSegmentDirection == Vector2Int.down) {
+                        segmentRenderer.sprite = curveBottomRight;
+                    } else if (prevSegmentDirection == Vector2Int.down && nextSegmentDirection == Vector2Int.left ||
+                            prevSegmentDirection == Vector2Int.right && nextSegmentDirection == Vector2Int.up) {
+                        segmentRenderer.sprite = curveTopLeft;
+                    } else if (prevSegmentDirection == Vector2Int.down && nextSegmentDirection == Vector2Int.right ||
+                            prevSegmentDirection == Vector2Int.left && nextSegmentDirection == Vector2Int.up) {
+                        segmentRenderer.sprite = curveTopRight;
+                    }
+                }
+            }
+        }
+    }
+
+
 
     private void Update()
     {
@@ -72,13 +156,18 @@ public class Snake : MonoBehaviour
 
         // Set the next update time based on the speed
         nextUpdate = Time.time + (1f / (speed * speedMultiplier));
+
+        // Atualiza os sprites
+        UpdateSprites();
     }
+
 
     public void Grow()
     {
         Transform segment = Instantiate(segmentPrefab);
         segment.position = segments[segments.Count - 1].position;
         segments.Add(segment);
+        scoreManager.AddScore(1);
     }
 
     // Desabilita o colisor da Snake 
@@ -144,6 +233,10 @@ public class Snake : MonoBehaviour
         if (other.gameObject.CompareTag("Food"))
         {
             Grow();
+            eatSound.Play();
+            debuffController.SwitchCamerasToDefault();
+            debuffController.timeSinceEat = 0f;
+            debuffController.cameraDebuffDuration = 0f;
         }
         else if (other.gameObject.CompareTag("Obstacle"))
         {
@@ -154,10 +247,15 @@ public class Snake : MonoBehaviour
         {
             if (moveThroughWalls) {
                 Traverse(other.transform);
+                wallPassSound.Play();
             } else {
                 Debug.Log("Colisão detectada");
                 gameOver.EndGame();
             }
+        }
+        else if (other.gameObject.CompareTag("PowerUp"))
+        {
+            powerUpSound.Play();
         }
     }
 

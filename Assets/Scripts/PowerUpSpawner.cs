@@ -80,4 +80,15 @@ public class PowerUpSpawner : MonoBehaviour
         yield return new WaitForSeconds(spawnInterval);
         SpawnPowerUp();
     }
+
+    public void ResetPowerUp()
+    {
+        if (currentPowerUp != null)
+        {
+            Destroy(currentPowerUp);
+            currentPowerUp = null;
+        }
+        StopAllCoroutines();
+        StartCoroutine(SpawnPowerUpAfterInterval());
+    }
 }
