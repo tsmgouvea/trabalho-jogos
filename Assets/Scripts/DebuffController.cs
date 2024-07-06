@@ -12,11 +12,13 @@ public class DebuffController : MonoBehaviour
     public float cameraDebuffMaxDuration = 10f;
     public float cameraDebuffActivationTime = 5f;
     private bool isCameraDebuffActive = false;
+    private AudioSource audioSource;
 
     void Start()
     {
         MainCamera.enabled = true;
         DebuffCamera.gameObject.SetActive(false);
+        audioSource = GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -52,6 +54,11 @@ public class DebuffController : MonoBehaviour
 
         isCameraDebuffActive = true;
 
+        if (audioSource != null)
+        {
+            audioSource.Play();
+        }
+
         Debug.Log("MainCamera disabled, DebuffCamera enabled");
         Debug.Log($"MainCamera.enabled: {MainCamera.enabled}");
         Debug.Log($"DebuffCamera.enabled: {DebuffCamera.enabled}");
@@ -70,5 +77,19 @@ public class DebuffController : MonoBehaviour
         Debug.Log("MainCamera enabled, DebuffCamera disabled");
         Debug.Log($"MainCamera.enabled: {MainCamera.enabled}");
         Debug.Log($"DebuffCamera.enabled: {DebuffCamera.enabled}");
+    }
+
+    public void ReseteCameras()
+    {
+        if (isCameraDebuffActive)
+        {
+            cameraDebuffDuration = cameraDebuffMaxDuration;
+            if (cameraDebuffDuration >= cameraDebuffMaxDuration)
+            {
+                SwitchCamerasToDefault();
+                cameraDebuffDuration = 0;
+                timeSinceEat = 0;
+            }
+        }
     }
 }

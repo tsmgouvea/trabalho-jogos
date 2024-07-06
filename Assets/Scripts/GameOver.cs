@@ -9,6 +9,9 @@ public class GameOver : MonoBehaviour
     public Snake snakeController; // Importa a Snake
     public ScoreManager scoreManager;
     public Text scoreTextGameOver;
+    public Food food;
+    public PowerUpSpawner powerUpSpawner;
+    public DebuffController debuffController;
     private bool isGameOver = false;
 
     // Garante que a tela de Game Over comece inativa
@@ -40,7 +43,7 @@ public class GameOver : MonoBehaviour
     // Reinicia o jogo 
     public void Restart()
     {
-        Debug.Log("Restarting the game");
+        Debug.Log("Restarting the game"); 
         Time.timeScale = 1f; // Despausar o jogo 
         GameOverCanvas.SetActive(false); // Desativar a tela de Game Over
 
@@ -51,6 +54,10 @@ public class GameOver : MonoBehaviour
     private IEnumerator RestartCoroutine()
     {
         snakeController.ResetState(); // Reiniciar o estado da Snake 
+
+        food.RandomizePosition(); 
+        powerUpSpawner.ResetPowerUp();
+        debuffController.ReseteCameras();
 
         yield return new WaitForSeconds(0.1f); // Esperar para evitar colisões fantasmas 
         snakeController.EnableCollider(); // Reabilitar o colisor da Snake
